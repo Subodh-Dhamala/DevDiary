@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:18-alpine
+    container_name: devdiary-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: devdiary
+      POSTGRES_PASSWORD: devdiary123
+      POSTGRES_DB: devdiary
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+volumes:
+  postgres_data:
