@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:18-alpine
+    image: pgvector/pgvector:pg18 # pg + pgvector
     container_name: devdiary-db
     restart: unless-stopped
     environment:
