@@ -5,18 +5,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.entry import Entry
 from app.schemas import EntryCreate, EntryUpdate
 
+from app.services.embedding_service import generate_embedding
 
-async def create_entry(
-    entry_data: EntryCreate,
-    session: AsyncSession,
-):
+async def create_entry(entry_data: EntryCreate, session: AsyncSession):
+    text = f"{entry_data.title}\n\n{entry_data.content}"
+
+    embedding = await generate_embedding(text) #embedding generation for the entry
+
     new_entry = Entry(
         title=entry_data.title,
         content=entry_data.content,
+        embedding=embedding,
     )
 
     session.add(new_entry)
-
     await session.commit()
     await session.refresh(new_entry)
 
@@ -55,6 +57,9 @@ async def update_entry(
 
     if entry_data.content is not None:
         entry.content = entry_data.content
+
+    text = f"{entry.title}\n\n{entry.content}"
+    entry.embedding = await generate_embedding(text) #update embedding for the entry
 
     await session.commit()
     await session.refresh(entry)
