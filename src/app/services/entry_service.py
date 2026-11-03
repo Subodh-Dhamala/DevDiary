@@ -77,3 +77,19 @@ async def delete_entry(entry_id: int, session: AsyncSession):
     await session.commit()
 
     return entry
+
+
+async def search_entries(query: str, session: AsyncSession):
+    #generate embedding for the search query
+    query_embedding = await generate_embedding(query)
+
+    #compare query embedding with stored embeddings
+    statement = (
+        select(Entry)
+        .order_by(Entry.embedding.cosine_distance(query_embedding))
+        .limit(5)
+    )
+
+    result = await session.execute(statement)
+
+    return result.scalars().all()

@@ -9,6 +9,12 @@ from app.services import entry_service
 
 router = APIRouter()
 
+@router.get("/entries/search", response_model=list[EntryResponse])
+async def search_entries(
+    query: str,
+    db: AsyncSession = Depends(get_db),
+):
+    return await entry_service.search_entries(query, db)
 
 @router.post(
     "/entries",
@@ -83,3 +89,4 @@ async def delete_entry(
         )
 
     return Response(status_code=204)
+
