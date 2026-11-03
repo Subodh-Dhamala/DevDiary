@@ -83,10 +83,12 @@ async def search_entries(query: str, session: AsyncSession):
     #generate embedding for the search query
     query_embedding = await generate_embedding(query)
 
-    #compare query embedding with stored embeddings
+    distance = Entry.embedding.cosine_distance(query_embedding)
+
     statement = (
         select(Entry)
-        .order_by(Entry.embedding.cosine_distance(query_embedding))
+        .where(distance < 0.5) #decision threshold for similarity
+        .order_by(distance)
         .limit(5)
     )
 
