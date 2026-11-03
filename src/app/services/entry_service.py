@@ -1,47 +1,74 @@
-entries = []
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.entry import Entry
+from app.schemas import EntryCreate, EntryUpdate
 
 
-def create_entry(entry_data):
-    new_entry = {
-        "id": len(entries) + 1,
-        "title": entry_data.title,
-        "content": entry_data.content
-    }
+async def create_entry(
+    entry_data: EntryCreate,
+    session: AsyncSession,
+):
+    new_entry = Entry(
+        title=entry_data.title,
+        content=entry_data.content,
+    )
 
-    entries.append(new_entry)
+    session.add(new_entry)
+
+    await session.commit()
+    await session.refresh(new_entry)
+
     return new_entry
 
 
-def get_all_entries():
-    return entries
+async def get_all_entries(session: AsyncSession):
+    result = await session.execute(select(Entry))
+
+    return result.scalars().all()
 
 
-def get_entry_by_id(entry_id):
-    for entry in entries:
-        if entry["id"] == entry_id:
-            return entry
+async def get_entry_by_id(
+    entry_id: int,
+    session: AsyncSession,
+):
+    result = await session.execute(
+        select(Entry).where(Entry.id == entry_id)
+    )
 
-    return None
+    return result.scalar_one_or_none()
 
 
-def update_entry(entry_id, entry_data):
-    entry = get_entry_by_id(entry_id)
+async def update_entry(
+    entry_id: int,
+    entry_data: EntryUpdate,
+    session: AsyncSession,
+):
+    entry = await get_entry_by_id(entry_id, session)
 
     if entry is None:
         return None
 
     if entry_data.title is not None:
-        entry["title"] = entry_data.title
+        entry.title = entry_data.title
 
     if entry_data.content is not None:
-        entry["content"] = entry_data.content
+        entry.content = entry_data.content
+
+    await session.commit()
+    await session.refresh(entry)
 
     return entry
 
 
-def delete_entry(entry_id):
-    for index, entry in enumerate(entries):
-        if entry["id"] == entry_id:
-            return entries.pop(index)
+async def delete_entry(entry_id: int, session: AsyncSession):
+    entry = await get_entry_by_id(entry_id, session)
 
-    return None
+    if entry is None:
+        return None
+
+    await session.delete(entry)
+    await session.commit()
+
+    return entry
