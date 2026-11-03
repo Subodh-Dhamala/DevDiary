@@ -6,6 +6,7 @@ Create Date: 2026-11-03 09:30:57.670871
 
 """
 from typing import Sequence, Union
+from pgvector.sqlalchemy import Vector
 
 from alembic import op
 import sqlalchemy as sa
@@ -25,7 +26,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(length=255), nullable=False),
     sa.Column('content', sa.Text(), nullable=False),
-    sa.Column('embedding', pgvector.sqlalchemy.vector.VECTOR(dim=1536), nullable=False),
+    sa.Column('embedding', Vector(1536), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.PrimaryKeyConstraint('id')
