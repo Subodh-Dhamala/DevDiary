@@ -6,8 +6,25 @@ from app.database import get_db
 from app.schemas import EntryCreate, EntryUpdate, EntryResponse
 from app.services import entry_service
 
+from app.services.rag_service import ask_question
+
 
 router = APIRouter()
+
+@router.get("/entries/ask")
+async def ask(
+    question: str,
+    db: AsyncSession = Depends(get_db),
+):
+
+    result = await ask_question(question, db)
+
+    return {
+        "question": question,
+        "answer": result["answer"],
+        "sources": result["sources"],
+    }
+
 
 @router.get("/entries/search", response_model=list[EntryResponse])
 async def search_entries(
@@ -89,4 +106,5 @@ async def delete_entry(
         )
 
     return Response(status_code=204)
+
 
