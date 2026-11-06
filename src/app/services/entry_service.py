@@ -85,6 +85,7 @@ async def search_entries(query: str, session: AsyncSession):
 
     distance = Entry.embedding.cosine_distance(query_embedding)  # calculates the cosine distance between the query embedding and the entry embeddings
 
+    #selects entries with a cosine distance less than 0.3, orders them by distance and limits the results to the top 5 entries
     statement = (
         select(Entry)
         .where(distance < 0.3) #decision threshold for similarity

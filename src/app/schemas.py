@@ -14,6 +14,10 @@ class EntryUpdate(BaseModel):
     content: str | None = None
 
 
+class AskRequest(BaseModel):
+    question: str
+
+
 class EntryResponse(BaseModel):
     id: int
     title: str

@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.schemas import EntryCreate, EntryUpdate, EntryResponse
+from app.schemas import AskRequest, EntryCreate, EntryUpdate, EntryResponse
 from app.services import entry_service
 
 from app.services.rag_service import ask_question
@@ -17,10 +17,24 @@ async def ask(
     db: AsyncSession = Depends(get_db),
 ):
 
-    result = await ask_question(question, db)
+    result = await ask_question(question, db, allow_save=False)
 
     return {
         "question": question,
+        "answer": result["answer"],
+        "sources": result["sources"],
+    }
+
+
+@router.post("/entries/ask")
+async def ask_with_tools(
+    request: AskRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    result = await ask_question(request.question, db)
+
+    return {
+        "question": request.question,
         "answer": result["answer"],
         "sources": result["sources"],
     }
@@ -106,5 +120,4 @@ async def delete_entry(
         )
 
     return Response(status_code=204)
-
 
