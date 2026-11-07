@@ -17,8 +17,14 @@ class SearchNotesArguments(BaseModel):
 class SaveNoteArguments(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    title: Annotated[str,StringConstraints(strip_whitespace=True, min_length=1, max_length=255)]
-    content: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
+    title: Annotated[
+        str,
+        StringConstraints(strip_whitespace=True, min_length=1, max_length=255),
+    ]
+    content: Annotated[
+        str,
+        StringConstraints(strip_whitespace=True, min_length=1, max_length=50_000),
+    ]
 
 
 #this function executes the tool recommended via tool_definitions.py

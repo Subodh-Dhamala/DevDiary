@@ -1,21 +1,50 @@
 
 from datetime import datetime
+from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict
-
-
-class EntryCreate(BaseModel):
-    title: str
-    content: str
+from pydantic import BaseModel, ConfigDict, StringConstraints, model_validator
 
 
-class EntryUpdate(BaseModel):
-    title: str | None = None
-    content: str | None = None
+EntryTitle = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=1, max_length=255),
+]
+EntryContent = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=1, max_length=50_000),
+]
+AskQuestion = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=1, max_length=4_000),
+]
+SearchQuery = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=1, max_length=1_000),
+]
 
 
-class AskRequest(BaseModel):
-    question: str
+class RequestModel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+
+class EntryCreate(RequestModel):
+    title: EntryTitle
+    content: EntryContent
+
+
+class EntryUpdate(RequestModel):
+    title: EntryTitle | None = None
+    content: EntryContent | None = None
+
+    @model_validator(mode="after")
+    def require_update_fields(self):
+        if self.title is None and self.content is None:
+            raise ValueError("At least one of title or content must be provided")
+        return self
+
+
+class AskRequest(RequestModel):
+    question: AskQuestion
 
 
 class EntryResponse(BaseModel):

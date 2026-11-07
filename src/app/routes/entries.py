@@ -1,9 +1,18 @@
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException, Path, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.schemas import AskRequest, EntryCreate, EntryUpdate, EntryResponse
+from app.schemas import (
+    AskQuestion,
+    AskRequest,
+    EntryCreate,
+    EntryResponse,
+    EntryUpdate,
+    SearchQuery,
+)
 from app.services import entry_service
 
 from app.services.rag_service import ask_question
@@ -21,7 +30,7 @@ router = APIRouter()
     ),
 )
 async def ask(
-    question: str,
+    question: AskQuestion,
     db: AsyncSession = Depends(get_db),
 ):
 
@@ -67,7 +76,7 @@ async def ask_with_tools(
     ),
 )
 async def search_entries(
-    query: str,
+    query: SearchQuery,
     db: AsyncSession = Depends(get_db),
 ):
     return await entry_service.search_entries(query, db)
@@ -106,7 +115,7 @@ async def get_entries(db: AsyncSession = Depends(get_db)):
     description="Returns one entry by its ID.",
 )
 async def get_entry(
-    entry_id: int,
+    entry_id: Annotated[int, Path(gt=0)],
     db: AsyncSession = Depends(get_db)
 ):
     entry = await entry_service.get_entry_by_id(entry_id, db)
@@ -128,7 +137,7 @@ async def get_entry(
     description="Updates an entry and regenerates its embedding.",
 )
 async def update_entry(
-    entry_id: int,
+    entry_id: Annotated[int, Path(gt=0)],
     entry_update: EntryUpdate,
     db: AsyncSession = Depends(get_db)
 ):
@@ -151,7 +160,7 @@ async def update_entry(
     description="Deletes an entry by its ID. Returns no content on success.",
 )
 async def delete_entry(
-    entry_id: int,
+    entry_id: Annotated[int, Path(gt=0)],
     db: AsyncSession = Depends(get_db)
 ):
     deleted_entry = await entry_service.delete_entry(entry_id, db)
