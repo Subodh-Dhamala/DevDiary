@@ -4,13 +4,32 @@ services:
     container_name: devdiary-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: devdiary
-      POSTGRES_PASSWORD: devdiary123
-      POSTGRES_DB: devdiary
+      POSTGRES_USER: ${POSTGRES_USER:-devdiary}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devdiary123}
+      POSTGRES_DB: ${POSTGRES_DB:-devdiary}
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    container_name: devdiary-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL_DOCKER:-postgresql+asyncpg://devdiary:devdiary123@db:5432/devdiary}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   postgres_data:
