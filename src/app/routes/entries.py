@@ -11,7 +11,15 @@ from app.services.rag_service import ask_question
 
 router = APIRouter()
 
-@router.get("/entries/ask")
+@router.get(
+    "/entries/ask",
+    tags=["Assistant"],
+    summary="Ask about saved notes (read-only)",
+    description=(
+        "Ask a question using the saved-note assistant. The assistant may "
+        "search notes but cannot save notes through this endpoint."
+    ),
+)
 async def ask(
     question: str,
     db: AsyncSession = Depends(get_db),
@@ -26,7 +34,15 @@ async def ask(
     }
 
 
-@router.post("/entries/ask")
+@router.post(
+    "/entries/ask",
+    tags=["Assistant"],
+    summary="Ask the assistant",
+    description=(
+        "Ask a question using the saved-note assistant. The assistant can "
+        "search notes and may save a note when explicitly asked."
+    ),
+)
 async def ask_with_tools(
     request: AskRequest,
     db: AsyncSession = Depends(get_db),
@@ -40,7 +56,16 @@ async def ask_with_tools(
     }
 
 
-@router.get("/entries/search", response_model=list[EntryResponse])
+@router.get(
+    "/entries/search",
+    response_model=list[EntryResponse],
+    tags=["Entries"],
+    summary="Search entries by meaning",
+    description=(
+        "Returns up to five entries whose embedding is within the configured "
+        "cosine-distance threshold of the query."
+    ),
+)
 async def search_entries(
     query: str,
     db: AsyncSession = Depends(get_db),
@@ -50,7 +75,10 @@ async def search_entries(
 @router.post(
     "/entries",
     status_code=201,
-    response_model=EntryResponse
+    response_model=EntryResponse,
+    tags=["Entries"],
+    summary="Create an entry",
+    description="Creates a note and generates its embedding for semantic search.",
 )
 async def create_entry(
     entry: EntryCreate,
@@ -61,7 +89,10 @@ async def create_entry(
 
 @router.get(
     "/entries",
-    response_model=list[EntryResponse]
+    response_model=list[EntryResponse],
+    tags=["Entries"],
+    summary="List entries",
+    description="Returns all saved entries.",
 )
 async def get_entries(db: AsyncSession = Depends(get_db)):
     return await entry_service.get_all_entries(db)
@@ -69,7 +100,10 @@ async def get_entries(db: AsyncSession = Depends(get_db)):
 
 @router.get(
     "/entries/{entry_id}",
-    response_model=EntryResponse
+    response_model=EntryResponse,
+    tags=["Entries"],
+    summary="Get an entry",
+    description="Returns one entry by its ID.",
 )
 async def get_entry(
     entry_id: int,
@@ -88,7 +122,10 @@ async def get_entry(
 
 @router.patch(
     "/entries/{entry_id}",
-    response_model=EntryResponse
+    response_model=EntryResponse,
+    tags=["Entries"],
+    summary="Update an entry",
+    description="Updates an entry and regenerates its embedding.",
 )
 async def update_entry(
     entry_id: int,
@@ -106,7 +143,13 @@ async def update_entry(
     return entry
 
 
-@router.delete("/entries/{entry_id}", status_code=204)
+@router.delete(
+    "/entries/{entry_id}",
+    status_code=204,
+    tags=["Entries"],
+    summary="Delete an entry",
+    description="Deletes an entry by its ID. Returns no content on success.",
+)
 async def delete_entry(
     entry_id: int,
     db: AsyncSession = Depends(get_db)
@@ -120,4 +163,3 @@ async def delete_entry(
         )
 
     return Response(status_code=204)
-

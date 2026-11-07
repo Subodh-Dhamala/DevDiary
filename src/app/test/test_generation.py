@@ -5,7 +5,7 @@ from app.services.embedding_service import client
 
 async def main():
     response = await client.aio.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-3.5-flash-lite",
         contents="Explain Redis caching in simple terms."
     )
 
